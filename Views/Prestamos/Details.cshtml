@@ -1,0 +1,196 @@
+﻿@model PrestamosBrito.Models.Prestamos
+
+@{
+    ViewBag.Title = "Detalles";
+}
+<link href="http://www.codeproject.com/Scripts/jtable/themes/metro/blue/jtable.css"
+      rel="stylesheet" type="text/css" />
+<script type="text/javascript" src="http://www.codeproject.com/Scripts/jtable/jquery.jtable.js">
+</script>
+<h2>Detalles</h2>
+
+<div>
+    <h4>Prestamos</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.Clientes.Nombre)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Clientes.Nombre)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Cantidad)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Cantidad)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Tasa)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Tasa )<text> %</text>
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Tiempo)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Tiempo)
+        </dd>
+
+    </dl>
+</div>
+<div>
+    <h2>Tabla De Amortizacion</h2>
+    <table  class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Meses</th>
+                <th>Cuota</th>
+                <th>Interes</th>
+                <th>Cantd. Amortizacion</th>
+                <th>Amortizacion</th>
+                <th>Resto</th>
+            </tr>
+        </thead>
+      @{ 
+          double capital = Convert.ToDouble(Model.Cantidad);
+          double interes = Convert.ToDouble(Model.Tasa)/1200;
+          double plazo = Convert.ToDouble(Model.Tiempo);
+
+          double cuota = capital * (interes / (double)(1 - Math.Pow(1 + (double)interes, -plazo)));
+
+          double interes_mensual = 0;
+          double amortizacion = 0;
+          double amortizacion_total = 0;
+
+          int i = 1;
+
+          for (i=1; i <= plazo; i++)
+          {
+              interes_mensual = Math.Round((interes * capital), 2);
+              capital = Math.Round(capital - cuota + interes_mensual, 2);
+
+              //amortizaciones y amortizaciones totales
+
+              amortizacion_total += Math.Round(cuota - interes_mensual, 2);
+              amortizacion = cuota - interes_mensual;
+
+              <tbody>
+                  <tr>
+                      <td>@i</td>
+                      <td>@Math.Round(cuota, MidpointRounding.AwayFromZero)</td>
+                      <td>@Math.Round(interes_mensual, MidpointRounding.AwayFromZero)</td>
+                      <td>@Math.Round(amortizacion, MidpointRounding.AwayFromZero)</td>
+                      <td>@Math.Round(amortizacion_total, MidpointRounding.AwayFromZero)</td>
+                      <td>@Math.Round(capital, MidpointRounding.AwayFromZero)</td>
+                  </tr>
+              </tbody>
+          }
+
+
+          // double valor = capital * ((interes * Math.Pow(1 + interes, plazo)) / (Math.Pow(1 + interes, plazo)));
+
+      }
+    </table>
+</div>
+
+<div id="PersonTable" style="width: 580px; margin: auto;"></div>
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+
+        //Prepare jtable plugin
+        $('#PersonTable').jtable({
+            title: 'The Person List',
+            actions: {
+                listAction: '/Prestamos/Index',
+                deleteAction: '/Prestamos/Delete',
+                updateAction: '/Prestamos/Edit',
+                createAction: '/Prestamos/Create'
+            },
+            fields: {
+                PersonId: {
+                    key: true,
+                    create: false,
+                    edit: false,
+                    list: false
+                },
+                Name: {
+                    title: 'Name',
+                    width: '15%'
+                },
+                EmailAddress: {
+                    title: 'Emal address',
+                    list: false
+                },
+                Password: {
+                    title: 'User Password',
+                    type: 'password',
+                    list: false
+                },
+                Gender: {
+                    title: 'Gender',
+                    width: '12%',
+                    options: { 'M': 'Male', 'F': 'Female' }
+                },
+                CityId: {
+                    title: 'Living city',
+                    width: '15%',
+                    options: '/Home/GetCityOptions'
+                },
+                BirthDate: {
+                    title: 'Birth date',
+                    width: '18%',
+                    type: 'date',
+                    displayFormat: 'yy-mm-dd'
+                },
+                Education: {
+                    title: 'Education',
+                    list: false,
+                    type: 'radiobutton',
+                    options: {
+                        '1': 'Primary school',
+                        '2': 'High school', '3': 'University'
+                    }
+                },
+                About: {
+                    title: 'About this person',
+                    type: 'textarea',
+                    list: false
+                },
+                IsActive: {
+                    title: 'Status',
+                    width: '10%',
+                    type: 'checkbox',
+                    values: { 'false': 'Passive', 'true': 'Active' },
+                    defaultValue: 'true'
+                },
+                RecordDate: {
+                    title: 'Record date',
+                    width: '18%',
+                    type: 'date',
+                    displayFormat: 'dd.mm.yy',
+                    create: false,
+                    edit: false
+                }
+            }
+        });
+
+        //Load person list from server
+        $('#PersonTable').jtable('load');
+    });
+
+</script>
+<p>
+    @Html.ActionLink("Editar", "Edit", new { id = Model.Id }) |
+    @Html.ActionLink("Volver a la lista", "Index")
+</p>
